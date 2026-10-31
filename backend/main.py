@@ -1,15 +1,18 @@
+
 from schemas import EventCreate, LoginEventCreate
 from graph_engine import build_attack_graph
 from datetime import datetime, timedelta
+import csv
+import io
 import json
-from fastapi import FastAPI, Depends
+
+from fastapi import FastAPI, Depends, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
 from database import engine, SessionLocal, Base
 from models import Event, LoginEvent
-from schemas import EventCreate, LoginEventCreate
 
 Base.metadata.create_all(bind=engine)
 
@@ -281,7 +284,6 @@ def get_response_advice(
     }
 
 
-
 @app.get("/api/timeline")
 def attack_timeline(db: Session = Depends(get_db)):
     events = (
@@ -350,6 +352,162 @@ def investigate_ip(ip_address: str, db: Session = Depends(get_db)):
     }
 
 
+# CSV UPLOAD AND ANALYSIS
+
+@app.post("/api/upload-csv")
+async def upload_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a CSV file."
+        )
+
+    content = await file.read()
+
+    if not content:
+        raise HTTPException(
+            status_code=400,
+            detail="CSV file is empty."
+        )
+
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=413,
+            detail="Maximum CSV file size is 5 MB."
+        )
+
+    try:
+        decoded = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise HTTPException(
+            status_code=400,
+            detail="CSV must use UTF-8 encoding."
+        )
+
+    reader = csv.DictReader(io.StringIO(decoded))
+
+    required_columns = [
+        "user_id",
+        "ip_address",
+        "failed_attempts",
+        "unusual_time",
+        "unfamiliar_ip",
+        "success_after_failures"
+    ]
+
+    headers = [
+        str(h).strip()
+        for h in (reader.fieldnames or [])
+        if h is not None
+    ]
+
+    missing_columns = [
+        column for column in required_columns
+        if column not in headers
+    ]
+
+    if missing_columns:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Required CSV columns are missing.",
+                "missing_columns": missing_columns
+            }
+        )
+
+    def parse_bool(value):
+        value = str(value).strip().lower()
+
+        if value in ("true", "1", "yes"):
+            return True
+
+        if value in ("false", "0", "no"):
+            return False
+
+        raise ValueError(f"Invalid boolean value: {value}")
+
+    results = []
+    errors = []
+    total_rows = 0
+
+    for row_number, row in enumerate(reader, start=2):
+
+        if not row or not any(
+            str(value or "").strip()
+            for value in row.values()
+        ):
+            continue
+
+        total_rows += 1
+
+        try:
+            clean_row = {
+                str(key).strip(): str(value or "").strip()
+                for key, value in row.items()
+                if key is not None
+            }
+
+            user_id = clean_row.get("user_id", "")
+            ip_address = clean_row.get("ip_address", "")
+
+            if not user_id or not ip_address:
+                raise ValueError(
+                    "User ID and IP address are required."
+                )
+
+            failed_attempts = int(
+                clean_row["failed_attempts"]
+            )
+
+            if failed_attempts < 0:
+                raise ValueError(
+                    "Failed attempts cannot be negative."
+                )
+
+            data = EventCreate(
+                user_id=user_id,
+                ip_address=ip_address,
+                failed_attempts=failed_attempts,
+                unusual_time=parse_bool(
+                    clean_row["unusual_time"]
+                ),
+                unfamiliar_ip=parse_bool(
+                    clean_row["unfamiliar_ip"]
+                ),
+                success_after_failures=parse_bool(
+                    clean_row["success_after_failures"]
+                )
+            )
+
+            event = save_event(db, data)
+            results.append(format_event(event))
+
+        except Exception as e:
+            db.rollback()
+
+            errors.append({
+                "row": row_number,
+                "error": str(e)
+            })
+
+    if total_rows == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="CSV contains no data rows."
+        )
+
+    return {
+        "message": "CSV processing completed.",
+        "total_rows": total_rows,
+        "successful_rows": len(results),
+        "failed_rows": len(errors),
+        "events": results,
+        "errors": errors
+    }
+
 
 @app.post("/api/seed")
 def seed_data(db: Session = Depends(get_db)):
@@ -375,7 +533,10 @@ def seed_data(db: Session = Depends(get_db)):
         )
     ]
 
-    results = [format_event(save_event(db, sample)) for sample in samples]
+    results = [
+        format_event(save_event(db, sample))
+        for sample in samples
+    ]
 
     return {
         "message": "Sample events saved to SQLite",
@@ -469,6 +630,7 @@ def cross_account_correlation(
         "correlations": results
     }
 
+
 @app.post("/api/login-event")
 def add_login_event(
     data: LoginEventCreate,
@@ -505,8 +667,12 @@ def get_login_timeline(db: Session = Depends(get_db)):
 
     return {
         "total_login_events": len(events),
-        "successful_logins": sum(1 for e in events if e.success == 1),
-        "failed_logins": sum(1 for e in events if e.success == 0),
+        "successful_logins": sum(
+            1 for e in events if e.success == 1
+        ),
+        "failed_logins": sum(
+            1 for e in events if e.success == 0
+        ),
         "timeline": [
             {
                 "event_id": e.id,
@@ -542,6 +708,7 @@ def detect_attack_patterns(
                 "accounts": set(),
                 "failed_attempts": 0
             })
+
             ip_data[event.ip_address]["accounts"].add(event.user_id)
             ip_data[event.ip_address]["failed_attempts"] += 1
 
@@ -549,12 +716,14 @@ def detect_attack_patterns(
                 "failed_attempts": 0,
                 "ip_addresses": set()
             })
+
             user_data[event.user_id]["failed_attempts"] += 1
             user_data[event.user_id]["ip_addresses"].add(event.ip_address)
 
     alerts = []
 
     for ip, data in ip_data.items():
+
         if data["failed_attempts"] >= 5 and len(data["accounts"]) == 1:
             alerts.append({
                 "type": "Possible Brute Force",

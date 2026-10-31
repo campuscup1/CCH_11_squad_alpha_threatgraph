@@ -1,80 +1,60 @@
-
-import networkx as nx
+from collections import defaultdict
 
 
 def build_attack_graph(events):
-    graph = nx.Graph()
+    nodes = []
+    edges = []
 
+    ip_data = defaultdict(list)
+    user_data = defaultdict(list)
+    relationship_data = defaultdict(list)
+
+    # Group events by IP, user and their relationship
     for event in events:
         ip = event.ip_address
         user = event.user_id
 
-        ip_node = f"IP:{ip}"
-        user_node = f"USER:{user}"
+        ip_data[ip].append(event)
+        user_data[user].append(event)
+        relationship_data[(ip, user)].append(event)
 
-        if not graph.has_node(ip_node):
-            graph.add_node(
-                ip_node,
-                node_type="IP",
-                label=ip,
-                risk_score=0,
-                event_count=0
-            )
-
-        if not graph.has_node(user_node):
-            graph.add_node(
-                user_node,
-                node_type="USER",
-                label=user,
-                risk_score=0,
-                event_count=0
-            )
-
-        graph.nodes[ip_node]["event_count"] += 1
-        graph.nodes[user_node]["event_count"] += 1
-
-        graph.nodes[ip_node]["risk_score"] = max(
-            graph.nodes[ip_node]["risk_score"],
-            event.risk_score
-        )
-
-        graph.nodes[user_node]["risk_score"] = max(
-            graph.nodes[user_node]["risk_score"],
-            event.risk_score
-        )
-
-        if graph.has_edge(ip_node, user_node):
-            graph[ip_node][user_node]["event_count"] += 1
-        else:
-            graph.add_edge(
-                ip_node,
-                user_node,
-                event_count=1
-            )
-
-    nodes = []
-
-    for node, data in graph.nodes(data=True):
+    # Create IP nodes
+    for ip, related_events in ip_data.items():
         nodes.append({
-            "id": node,
-            "label": data["label"],
-            "type": data["node_type"],
-            "risk_score": data["risk_score"],
-            "event_count": data["event_count"]
+            "id": f"ip_{ip}",
+            "label": ip,
+            "type": "IP",
+            "risk_score": max(
+                (event.risk_score or 0 for event in related_events),
+                default=0
+            ),
+            "event_count": len(related_events)
         })
 
-    edges = []
+    # Create USER nodes
+    for user, related_events in user_data.items():
+        nodes.append({
+            "id": f"user_{user}",
+            "label": user,
+            "type": "USER",
+            "risk_score": max(
+                (event.risk_score or 0 for event in related_events),
+                default=0
+            ),
+            "event_count": len(related_events)
+        })
 
-    for source, target, data in graph.edges(data=True):
+    # Create relationships between IPs and users
+    for (ip, user), related_events in relationship_data.items():
         edges.append({
-            "source": source,
-            "target": target,
-            "event_count": data["event_count"]
+            "source": f"ip_{ip}",
+            "target": f"user_{user}",
+            "event_count": len(related_events)
         })
 
     return {
-        "total_nodes": graph.number_of_nodes(),
-        "total_connections": graph.number_of_edges(),
         "nodes": nodes,
-        "edges": edges
+        "edges": edges,
+        "total_nodes": len(nodes),
+        "total_connections": len(edges)
     }
