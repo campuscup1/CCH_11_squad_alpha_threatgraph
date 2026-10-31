@@ -1,0 +1,118 @@
+PROJECT: ThreatGraph – Explainable Cyberattack Detection System
+
+STRICT FRONTEND-ONLY INSTRUCTIONS
+
+1. DO NOT TOUCH THE BACKEND.
+- Do not edit, rewrite, delete, rename, move, or recreate any backend file.
+- Do not modify Python files, API routes, database logic, detection rules, risk calculations, or backend configuration.
+- Do not install or change backend dependencies.
+- You may READ backend code only to understand existing API endpoints and response formats.
+- If an API is missing, report it. Do not create or modify backend endpoints.
+- All implementation work must be limited to the existing frontend.
+
+2. EXISTING PROJECT
+- Inspect the project structure before making changes.
+- Identify the existing frontend framework and components.
+- Reuse the existing framework, dependencies, and design wherever possible.
+- Do not replace working code unnecessarily.
+- Do not create a second frontend application.
+
+3. BACKEND INTEGRATION
+- Connect only to existing backend API endpoints.
+- Do not invent API routes, response fields, or backend functionality.
+- Do not independently calculate final risk scores or detection results in the frontend.
+- Display scores, alerts, classifications, and explanations returned by the backend.
+- If the backend is unavailable, show clearly labelled DEMO DATA.
+- Never present mock data as live backend results.
+- Handle loading, errors, empty results, and invalid uploads.
+
+4. PROJECT PURPOSE
+ThreatGraph is a web-based cybersecurity monitoring dashboard. It analyzes synthetic login and network-event records to identify suspicious activity and provides explainable alerts, risk assessments, attack relationship visualization, and chronological investigation timelines.
+
+5. REQUIRED FRONTEND FEATURES
+
+A. OVERVIEW DASHBOARD
+- Total events analyzed.
+- Normal events.
+- Suspicious events.
+- High-risk alerts.
+- Correlated attack campaigns, if supplied by the backend.
+- Risk distribution chart.
+- Recent security alerts.
+- Recent activity.
+- All values must come from the backend or be clearly labelled demo data.
+
+B. EVENT INGESTION
+- CSV drag-and-drop upload area.
+- Browse Files button.
+- File validation and useful error messages.
+- Preview uploaded records.
+- Upload/analysis status.
+- Manual event entry only if supported by an existing API.
+- Sample dataset option only if available.
+
+C. ATTACK RELATIONSHIP GRAPH
+- Interactive graph with IP addresses and user accounts represented as distinct node types.
+- Edges represent observed login relationships.
+- Highlight suspicious relationships only when supported by backend data.
+- Support zoom, pan, and node selection.
+- On node selection, show related accounts, IP addresses, and events when available.
+- Generate the graph from actual backend event data.
+- Do not create fake attack relationships or present a static decorative graph as real.
+
+D. ATTACK TIMELINE
+- Display related events chronologically.
+- Show timestamp, user ID, IP address, login result, and triggered rule when available.
+- Group related events only when backend data supports correlation.
+- Explain possible progression without claiming an attack is confirmed.
+
+E. SECURITY ALERTS
+- Alert ID, severity, affected account, source IP, triggered rule, risk score, timestamp, and status when available.
+- Search, filter, and sort alerts.
+- Show an explanation for each alert.
+- Selecting an alert should open its details.
+
+F. INVESTIGATION DETAILS
+- Selected event or alert summary.
+- Evidence behind the detection.
+- Triggered rules.
+- Backend-provided risk breakdown.
+- Possible benign explanations when available.
+- Recommended administrative responses.
+- Investigation status/history only if supported.
+
+6. DESIGN
+- Professional Security Operations Center dashboard.
+- Dark navy/charcoal background.
+- Electric blue accents.
+- Red for high risk, orange for medium risk, green for low risk/normal.
+- Clean typography, consistent spacing, responsive layout.
+- Modern cards, charts, tables, and visualizations.
+- Avoid excessive animation and decorative clutter.
+
+7. FUNCTIONALITY
+- Navigation, search, filters, graph interactions, and controls must work.
+- Upload must use the existing backend API.
+- Charts must use available data.
+- Refresh data when appropriate.
+- Show clear empty states and errors.
+- Do not include buttons that do nothing.
+
+8. SAFETY AND ACCURACY
+- Use synthetic or fictional sample data only.
+- Never request or display real passwords.
+- Never automatically block users or IP addresses.
+- A suspicious event is not proof that an account is compromised.
+- Display uncertainty honestly.
+
+9. DEVELOPMENT PROCESS
+- Inspect before modifying.
+- Make frontend changes incrementally.
+- Preserve all backend files.
+- Test the frontend after major changes.
+- Fix frontend errors without changing backend code.
+- At completion, list every file created or modified.
+- Explicitly confirm that no backend files were changed.
+
+FINAL PRIORITY:
+Deliver a polished, functional frontend connected to the EXISTING backend. Backend files must remain untouched.

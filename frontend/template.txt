@@ -1,0 +1,165 @@
+BUILD THE FRONTEND FOR THREATGRAPH.
+Follow rules.txt exactly. FRONTEND ONLY — DO NOT TOUCH THE BACKEND.
+
+APP NAME
+ThreatGraph
+
+TAGLINE
+Explainable Cyberattack Detection & Investigation
+
+FIRST STEP
+Inspect the existing project. Identify the frontend framework, existing pages/components, and available backend API endpoints. Read backend files only if needed to understand the API. Do not modify any backend file. Reuse the existing frontend; do not generate a replacement project.
+
+DESIGN
+Create a polished, professional Security Operations Center dashboard:
+- Dark navy/charcoal background.
+- Electric blue accents.
+- Red high-risk, orange medium-risk, green low-risk/normal indicators.
+- Clean typography, subtle borders, consistent spacing.
+- Responsive layout and restrained animations.
+- Make it look like a real cybersecurity product, not a generic template.
+
+MAIN LAYOUT
+Sidebar navigation:
+1. Overview
+2. Event Ingestion
+3. Attack Graph
+4. Attack Timeline
+5. Security Alerts
+6. Investigation
+
+Top bar:
+- Current page title.
+- Backend/system connection status.
+- Last updated time.
+- Refresh control.
+- Administrator indicator.
+
+PAGE 1 — OVERVIEW
+Title: Security Overview
+Subtitle: Monitor suspicious login activity and investigate correlated threats.
+
+Show summary cards:
+- Total Events
+- Normal Events
+- Suspicious Events
+- High-Risk Alerts
+- Correlated Campaigns (only if backend provides this value)
+
+Show:
+- Risk distribution chart.
+- Recent security alerts.
+- Recent login activity.
+- Detection summary.
+
+Use backend data. If the backend is unavailable, use clearly labelled DEMO MODE data; never imply it is live.
+
+PAGE 2 — EVENT INGESTION
+Title: Event Ingestion
+
+Include:
+- CSV drag-and-drop upload area.
+- Browse Files control.
+- Supported file format information based on the existing backend.
+- Upload progress and analysis status.
+- Validation errors.
+- Uploaded event preview table.
+
+Display available fields such as:
+- User ID
+- IP Address
+- Timestamp
+- Login Result
+- Failed Attempt Count
+
+Manual event entry or sample dataset controls may be added only if supported by the existing backend.
+
+PAGE 3 — ATTACK GRAPH
+Title: Attack Relationship Graph
+Subtitle: Explore relationships between source IP addresses and targeted accounts.
+
+Create a genuinely interactive graph:
+- IP addresses and user accounts must look like different node types.
+- Edges represent observed login relationships.
+- Highlight suspicious relationships only when supported by backend data.
+- Zoom, pan, select nodes, and provide a graph legend.
+- Add useful filters if the data supports them.
+
+When a node is selected, show a side panel with its details, related accounts/IPs, and associated events.
+
+The graph must be generated from available backend event data. Do not use a static decorative graph or invented attack relationships.
+
+PAGE 4 — ATTACK TIMELINE
+Title: Attack Sequence Reconstruction
+Subtitle: Review related events in chronological order.
+
+Create a clear vertical timeline. Each entry should show available information:
+- Timestamp
+- User ID
+- IP Address
+- Login result
+- Triggered rule
+- Severity/risk, if available
+
+Use distinct visual indicators for successful and failed logins. Describe possible attack progression without claiming certainty.
+
+PAGE 5 — SECURITY ALERTS
+Title: Security Alerts
+
+Include:
+- Search.
+- Severity filter.
+- Status filter, if supported.
+- Sort controls.
+- Alert table.
+
+Columns, when available:
+- Alert ID
+- Severity
+- User ID
+- IP Address
+- Detection Reason
+- Risk Score
+- Timestamp
+- Status
+
+Selecting an alert should open its investigation details.
+
+PAGE 6 — INVESTIGATION
+Title: Investigation Details
+
+Show:
+- Alert summary and severity.
+- Risk score.
+- Affected accounts.
+- Related IP addresses.
+- Triggered detection rules.
+- Evidence and explanation.
+- Related event history.
+- Recommended administrative action.
+- Investigation status, only if supported.
+
+Make evidence and explanations easy to understand and visually prominent.
+
+TECHNICAL REQUIREMENTS
+- Use the existing frontend framework and installed packages.
+- Connect only to existing backend API endpoints.
+- Do not invent API endpoints or response fields.
+- Do not change backend code, dependencies, routes, data, or configuration.
+- Keep frontend components modular and organized.
+- Add loading, error, empty, and success states.
+- Ensure navigation, filters, search, graph interactions, and buttons work.
+- Do not calculate final backend risk scores in the frontend.
+- Do not leave decorative controls that do nothing.
+
+FINAL TEST
+- Run the existing frontend using the project's current setup.
+- Check all pages and navigation.
+- Test upload integration if the existing API supports it.
+- Test graph, timeline, alerts, and investigation views with available data.
+- Check browser console errors.
+- Fix frontend issues only.
+- List every frontend file created or modified.
+- Explicitly confirm: NO BACKEND FILES WERE MODIFIED.
+
+PRIORITY: A polished, working frontend integrated with the teammate's existing backend. Preserve the backend completely.
